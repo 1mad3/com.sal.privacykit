@@ -10,7 +10,7 @@ It does not make you anonymous. Apps can still track you by login, IP address,
 network metadata, browser state and server-side checks. Privacy Kit only covers
 on-device identifiers.
 
-Package: `com.sal.privacykit`. Current version: `3.2` (versionCode 89).
+Package: `com.sal.privacykit`. Current version: `3.6` (versionCode 110).
 
 ## What a release contains
 
@@ -138,6 +138,46 @@ What it does not do:
 - The cpuinfo, frequency and version text is filled in by your AI provider if you
   set one. Without it, the install date, `if_inet6` and Wi-Fi MAC are still
   spoofed, and the rest is skipped rather than faked badly.
+
+## Troubleshooting
+
+**App is not being spoofed — check root hiding first.** Privacy Kit works through
+Zygisk and mounts, so if your root manager *hides modules* from the target app, that
+app sees the real, un-spoofed device.
+
+- Magisk: remove the app from the **Zygisk DenyList** (or keep DenyList off).
+- KernelSU-Next (KSUN) / SukiSU-Ultra: turn **"Umount modules" off**, or give the app
+  a **custom app profile with Umount modules disabled**.
+
+**Balanced, Stealth or Ultra — set the LSPosed scope correctly.** These modes want the
+target app **out** of the LSPosed scope (Privacy Kit uses the native and framework
+layers instead and makes its own Java hooks inert for that app — it reminds you). But
+the Framework layer that serves Android ID, serial and telephony runs in
+`system_server`, so Privacy Kit also needs **"Android System Framework"** (system_server)
+and the **Phone** app (`com.android.phone`) ticked in its LSPosed scope — add them and
+**reboot**. If Android ID, serial or SIM/telephony IDs read real in Balanced or Stealth,
+this is almost always why.
+
+**KPM is optional.** Only the **Stealth and Ultra** modes use the kernel module.
+**Standard and Balanced do not need it** — skip the `.kpm` unless you want those modes
+(see the KPM guide above).
+
+**After updating Privacy Kit.** **Re-toggle** the module in LSPosed (turn it off, then
+on) and **force-stop** the target app so the new code loads. If you have no LSPosed
+Manager installed, **reboot** instead.
+
+**Other common fixes.**
+
+- Turn on **Native Spoofing (Zygisk)** in Developer settings — Balanced and Stealth need it.
+- Open apps with **"Launch with this profile"** inside Privacy Kit, not the normal app
+  icon, so the isolated profile actually mounts.
+- After changing a mode, profile or identifier, **force-stop and relaunch** the app.
+- Run **Setup Doctor** (Settings) — it checks LSPosed, scope, the native module, KPM,
+  battery and notifications in one tap.
+- Exempt Privacy Kit from **battery optimization** so background re-mounts survive.
+- App will not launch, or shows another profile's data: use **Fix stuck mounts**
+  (Developer settings), then relaunch.
+- Leave **Boot ID** on Real unless you need it — a spoofed boot_id crashes some apps.
 
 ## Source
 
